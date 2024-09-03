@@ -3,14 +3,21 @@
 include './partials/_databaseConnection.php';
 
 //add browse question in threads table
+$showAlert = false;
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
     $threadId = $_GET['thread-id'];
     $commentContent = $_POST['comment-description'];
     $currentDateTime = date('Y:m:d H:i:s');
-
-    $insertComment = "INSERT INTO comments(comment_content, thread_id, user_id, created) VALUES(?, ?, ?, ?)";
-    $statement = $conn->prepare($insertComment);
-    $statement->execute([$commentContent, $threadId, 0, $currentDateTime]);
+    session_start();
+    if (isset($_SESSION['loggedin'])) {
+        $userId = $_SESSION['user_id'];
+        $insertComment = "INSERT INTO comments(comment_content, thread_id, user_id, created) VALUES(?, ?, ?, ?)";
+        $statement = $conn->prepare($insertComment);
+        $statement->execute([$commentContent, $threadId, $userId, $currentDateTime]);
+        $showAlert = false;
+    } else {
+        $showAlert = 'You are not login. Please! login and then add your comment';
+    }
 }
 ?>
 
@@ -62,7 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
             <div class="col-12 py-2 col-md-7 d-flex flex-column gap-4 border rounded" style="max-height: 94vh; height:100%; overflow-y: auto; scrollbar-width:thin">
                 <?php
                 $threadId = $_GET['thread-id'];
-                $sql = "SELECT * FROM comments WHERE thread_id = ?";
+                $sql = 'SELECT comment.*, user.username FROM comments comment LEFT JOIN users user ON comment.user_id = user.user_id WHERE thread_id = ?';
+                // $sql = "SELECT * FROM comments WHERE thread_id = ?";
                 $statement = $conn->prepare($sql);
                 $statement->execute([$threadId]);
 
@@ -70,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
                     while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
                         $commentId = $row['thread_id'];
                         $commentContent = $row['comment_content'];
+                        $username = $row['username'];
                         $commentAddedDateTime = $row['created'];
 
                         echo '<section class="d-flex flex-column gap-1 py-2">
@@ -106,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
             <!-- Add Question Form -->
             <div class="col-12 px-0 ps-5 col-md-5" style="position: sticky; top:200px; right:0px">
                 <h4>Add Your Comment/ Answer</h4>
-                <form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="POST" class="from-group mt-4">
+                <form method="POST" class="from-group mt-4">
                     <div class="mb-3">
                         <textarea id="comment-description" name="comment-description" class="form-control" placeholder="Leave a comment/ answer here" required style="height: 150px"></textarea>
                     </div>

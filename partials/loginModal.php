@@ -1,3 +1,36 @@
+<?php
+//database connection
+include '_databaseConnection.php';
+
+//login
+$showError = false;
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
+    $username = $_POST['username'];
+    $emailId = $_POST['email-id'];
+    $password = $_POST['password'];
+
+    $sql = "SELECT * FROM users WHERE user_email_id = ?";
+    $statement = $conn->prepare($sql);
+    $statement->execute([$emailId]);
+
+    if ($statement->rowCount()) {
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        if (password_verify($password, $row['user_password'])) {
+            $login = true;
+            session_start();
+            $_SESSION['loggedin'] = true;
+            $_SESSION['username'] = $row['username'];
+            $_SESSION['user_id'] = $row['user_id'];
+            header("Location: index.php");
+            exit;
+        } else {
+            $showError = "Invaild username and password";
+        }
+    } else {
+        $showError = "Invaild username and password";
+    }
+}
+?>
 <!-- Login Modal -->
 <div class="modal fade" id="login-modal" tabindex="-1" aria-labelledby="login-ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 350px; margin:auto;">
@@ -41,17 +74,17 @@
                                     <input type="password" class="form-control py-2 px-3 rounded-5" name="password" id="password" placeholder="Password" required>
                                 </div>
 
-                                <!-- Warning Message
+                                <!-- Warning Message -->
                                 <div class="text-center">
                                     <?php
-                                    // if ($showLoginError) {
-                                    //     echo "<p class='text-danger m-0'>$showLoginError</p>";
-                                    //     $showLoginError = false;
-                                    // } else {
-                                    //     echo "<p class='m-0'></p>";
-                                    // }
+                                    if ($showError) {
+                                        echo "<p class='text-danger m-0'>$showError</p>";
+                                        $showError = false;
+                                    } else {
+                                        echo "<p class='m-0'></p>";
+                                    }
                                     ?>
-                                </div> -->
+                                </div>
 
                                 <div class="mt-4 d-flex justify-content-center">
                                     <button type="submit" class="btn btn-success px-5 py-2 rounded-5" name="login">Login</button>
