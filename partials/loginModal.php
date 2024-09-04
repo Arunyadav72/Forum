@@ -17,11 +17,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         $row = $statement->fetch(PDO::FETCH_ASSOC);
         if (password_verify($password, $row['user_password'])) {
             $login = true;
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            $login = true;
             $_SESSION['loggedin'] = true;
             $_SESSION['username'] = $row['username'];
-            $_SESSION['user_id'] = $row['user_id'];
-            header("Location: index.php");
+            $_SESSION['user-id'] = $row['user_id'];
+
+            header("Location: " . $_SERVER['REQUEST_URI']);
             exit;
         } else {
             $showError = "Invaild username and password";

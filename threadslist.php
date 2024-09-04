@@ -9,9 +9,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-question'])) {
     $questionDescription = $_POST['question-description'];
     $currentDateTime = date('Y:m:d H:i:s');
 
-    $insertQuestion = "INSERT INTO threads(thread_title, thread_description, thread_category_id, user_id, created) VALUES(?, ?, ?, ?, ?)";
-    $statement = $conn->prepare($insertQuestion);
-    $statement->execute([$questionTitle, $questionDescription, $categoryId, 0, $currentDateTime]);
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (isset($_SESSION['loggedin'])) {
+        $userId = $_SESSION['user-id'];
+        $insertQuestion = "INSERT INTO threads(thread_title, thread_description, thread_category_id, user_id, created) VALUES(?, ?, ?, ?, ?)";
+        $statement = $conn->prepare($insertQuestion);
+        $statement->execute([$questionTitle, $questionDescription, $categoryId, $userId, $currentDateTime]);
+    }
 }
 ?>
 
@@ -29,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-question'])) {
 <body style="background-color: #f6f9ff;">
     <?php include './partials/_header.php'; ?>
 
+    <!-- Show category details -->
     <div class="container my-5">
         <div class="row">
             <div class="col-12">
@@ -61,12 +68,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-question'])) {
                 <h2 class="text-center px-3 pb-1 border-bottom border-3 border-dark" style=" width:fit-content; margin:0 auto; ">Browse Questions</h2>
             </div>
         </div>
-
         <div class="row mx-0 my-5">
-            <div class="col-12 py-2 col-md-7 d-flex flex-column gap-4 border rounded" style="max-height: 94vh; height:100%; overflow-y: auto; scrollbar-width:thin">
+            <!-- Show Browse Question -->
+            <div class="col-12 col-lg-7 py-2 d-flex flex-column gap-4 border rounded" style="max-height: 94vh; height:100%; overflow-y: auto; scrollbar-width:thin">
                 <?php
                 $categoryId = $_GET['category-id'];
-                $sql = "SELECT * FROM threads WHERE thread_category_id = ?";
+                $sql = 'SELECT thread.*, user.username FROM threads thread LEFT JOIN users user ON thread.user_id = user.user_id WHERE thread_category_id = ?';
                 $statement = $conn->prepare($sql);
                 $statement->execute([$categoryId]);
 
@@ -75,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-question'])) {
                         $threadId = $row['thread_id'];
                         $threadTitle = $row['thread_title'];
                         $threadDescription = $row['thread_description'];
+                        $threadUsername = $row['username'];
                         $threadAddedDateTime = $row['created'];
 
                         echo '<section class="d-flex flex-column gap-1 py-2">
@@ -84,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-question'])) {
                                     <i class="bi bi-person fs-2"></i>
                                 </div>
                                 <div>
-                                    <p class="m-0 fw-semibold">Arun Yadav</p>
+                                    <p class="m-0 fw-semibold">' . $threadUsername . '</p>
                                     <p class="m-0">';
                         echo ($threadAddedDateTime) ? date("g:i A", strtotime($threadAddedDateTime)) . ' || ' : '';
                         echo date("j F, Y", strtotime($threadAddedDateTime));
@@ -109,8 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-question'])) {
                 ?>
             </div>
 
-            <!-- Add Question Form -->
-            <div class="col-12 px-0 ps-5 col-md-5" style="position: sticky; top:200px; right:0px">
+            <!-- Add Browse Question Form -->
+            <div class="col-12 col-lg-5 px-0 ps-lg-5 ps-0 mt-5 mt-lg-0" style="position: sticky; top:200px; right:0px">
                 <h4>Add Your Question</h4>
                 <form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="POST" class="from-group mt-4">
                     <div class="form-floating mb-3">

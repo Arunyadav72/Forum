@@ -12,12 +12,24 @@ include './partials/_databaseConnection.php';
     <title>iDiscuss - Coding Forum</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" integrity="sha384-4LISF5TTJX/fLmGSxO53rV4miRxdg84mZsxmO8Rx5jGtp/LbrixFETvWa5a6sESd" crossorigin="anonymous">
+    <style>
+        #header {
+            height: 70vh;
+        }
+
+        @media screen and (max-width: 1000px) {
+            #header {
+                /* Your styles for screens smaller than 768px */
+                height: auto;
+            }
+        }
+    </style>
 </head>
 
 <body style="background-color: #f6f9ff;">
     <?php include './partials/_header.php'; ?>
 
-    <header class="container-fluid" style="height: 70vh;">
+    <header class="container-fluid" id="header">
         <div class="row h-100">
             <div class="col-12 px-0 h-100">
                 <div id="carouselExampleIndicators" class="carousel slide h-100">
@@ -31,10 +43,10 @@ include './partials/_databaseConnection.php';
                             <img src="./Image/1000_F_325015501_0OREXfdOKXVEkRb3CoULxDDMgGy9gPNW.jpg" class="d-block w-100 img-fluid" alt="...">
                         </div>
                         <div class="carousel-item">
-                            <img src="./Image/compressed-colorful-code-background-web-programming-with-ruby-coding-2K4E1HF.jpg" class=" w-100 h-100" alt="...">
+                            <img src="./Image/1000_F_325015501_0OREXfdOKXVEkRb3CoULxDDMgGy9gPNW.jpg" class=" w-100 h-100" alt="...">
                         </div>
                         <div class="carousel-item">
-                            <img src="./Image/th.jpeg" class="d-block w-100 img-fluid" alt="...">
+                            <img src="./Image/1000_F_325015501_0OREXfdOKXVEkRb3CoULxDDMgGy9gPNW.jpg" class="d-block w-100 img-fluid" alt="...">
                         </div>
                     </div>
                     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
@@ -50,7 +62,7 @@ include './partials/_databaseConnection.php';
         </div>
     </header>
 
-    <section class="container">
+    <section class="container-fluid container">
         <h2 class="text-center my-5">iDiscuss - Browse Categories</h2>
 
         <div class="row mb-4 gy-5">
@@ -65,8 +77,8 @@ include './partials/_databaseConnection.php';
                     $categoryName = $row['category_name'];
                     $categoryDescription = $row['category_description'];
 
-                    echo '<div class="col-12 col-md-4">
-                        <div class="card" style="width: 18rem;">
+                    echo '<div class="col-12 col-sm-6 col-lg-4 d-flex justify-content-center">
+                        <div class="card" style="width:20rem;">
                             <img src="./Image/th.jpeg" class="card-img-top" alt="...">
                             <div class="card-body">
                                 <h5 class="card-title">' . $categoryName . '</h5>

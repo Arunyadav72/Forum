@@ -29,14 +29,31 @@
                     <a class="nav-link" href="contact.php">Contact</a>
                 </li>
             </ul>
-            <div class="d-flex gap-3">
-                <form class="d-flex" role="search">
+
+            <div class="d-flex flex-md-row flex-column gap-3">
+                <!-- Search bar functionalty -->
+                <form class="d-flex align-items-center m-0" role="search">
                     <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
                     <button class="btn btn-success" type="submit">Search</button>
                 </form>
+
                 <div class="d-flex gap-2">
-                    <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#login-modal">Login</button>
-                    <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#signUp-modal">SignUp</button>
+                    <?php
+                    if (session_status() === PHP_SESSION_NONE) {
+                        session_start();
+                    }
+                    if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] == true) {
+                        echo '
+                        <!-- User and logout button --> 
+                        <button class="btn btn-outline-success text-white"><i class="bi bi-person-circle"></i> You</button>
+                        <button class="btn btn-outline-success">Logout</button>';
+                    } else {
+                        echo '
+                        <!-- Login and SignUp Button -->
+                        <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#login-modal">Login</button>
+                        <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#signUp-modal">SignUp</button>';
+                    }
+                    ?>
                 </div>
             </div>
         </div>

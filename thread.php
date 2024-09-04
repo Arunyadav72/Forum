@@ -7,17 +7,20 @@ $showAlert = false;
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
     $threadId = $_GET['thread-id'];
     $commentContent = $_POST['comment-description'];
-    $currentDateTime = date('Y:m:d H:i:s');
-    session_start();
+    $currentDateTime = date('Y-m-d H:i:s');
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     if (isset($_SESSION['loggedin'])) {
-        $userId = $_SESSION['user_id'];
+        $userId = $_SESSION['user-id'];
         $insertComment = "INSERT INTO comments(comment_content, thread_id, user_id, created) VALUES(?, ?, ?, ?)";
         $statement = $conn->prepare($insertComment);
         $statement->execute([$commentContent, $threadId, $userId, $currentDateTime]);
         $showAlert = false;
-    } else {
-        $showAlert = 'You are not login. Please! login and then add your comment';
     }
+    // else {
+    //     $showAlert = 'You are not login. Please! login and then add your comment';
+    // }
 }
 ?>
 
@@ -35,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
 <body style="background-color: #f6f9ff;">
     <?php include './partials/_header.php'; ?>
 
+    <!-- Show Browse Question Details -->
     <div class="container my-5">
         <div class="row">
             <div class="col-12">
@@ -42,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
                     <?php
                     if ($_GET['thread-id']) {
                         $threadId = $_GET['thread-id'];
-                        $sql = "SELECT * FROM threads WHERE thread_id = ?";
+                        $sql = "SELECT thread.thread_title, thread.thread_description, user.username FROM threads thread LEFT JOIN users user ON thread.user_id = user.user_id  WHERE thread_id = ?";
                         $statement = $conn->prepare($sql);
                         $statement->execute([$threadId]);
                         $row = $statement->fetch(PDO::FETCH_ASSOC);
@@ -50,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
                         echo '<p class="m-0 fw-semibold">Browse Question</p>
                         <h1 class="display-5">' . $row['thread_title'] . '</h1>
                         <p class="lead">' . $row['thread_description'] . '</p>
-                        <p class="m-0 mt-5 fw-semibold text-end">Added By - Arun Yadav</p>';
+                        <p class="m-0 mt-5 fw-semibold text-end">Added By - ' . $row['username'] . '</p>';
                     }
                     ?>
                 </div>
@@ -66,11 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
         </div>
 
         <div class="row mx-0 my-5">
-            <div class="col-12 py-2 col-md-7 d-flex flex-column gap-4 border rounded" style="max-height: 94vh; height:100%; overflow-y: auto; scrollbar-width:thin">
+            <!-- Show Thread Answer -->
+            <div class="col-12 py-2 col-lg-7 d-flex flex-column gap-4 border rounded" style="max-height: 94vh; height:100%; overflow-y: auto; scrollbar-width:thin">
                 <?php
                 $threadId = $_GET['thread-id'];
                 $sql = 'SELECT comment.*, user.username FROM comments comment LEFT JOIN users user ON comment.user_id = user.user_id WHERE thread_id = ?';
-                // $sql = "SELECT * FROM comments WHERE thread_id = ?";
                 $statement = $conn->prepare($sql);
                 $statement->execute([$threadId]);
 
@@ -88,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
                                     <i class="bi bi-person fs-2"></i>
                                 </div>
                                 <div>
-                                    <p class="m-0 fw-semibold">Arun Yadav</p>
+                                    <p class="m-0 fw-semibold">' . $username . '</p>
                                     <p class="m-0">';
                         echo ($commentAddedDateTime) ? date("g:i A", strtotime($commentAddedDateTime)) . ' || ' : '';
                         echo date("j F, Y", strtotime($commentAddedDateTime));
@@ -112,8 +116,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
                 ?>
             </div>
 
-            <!-- Add Question Form -->
-            <div class="col-12 px-0 ps-5 col-md-5" style="position: sticky; top:200px; right:0px">
+            <!-- Add Browse Answer Form -->
+            <div class="col-12 px-0 ps-lg-5 ps-0 mt-5 mt-lg-0 col-lg-5" style="position: sticky; top:200px; right:0px">
                 <h4>Add Your Comment/ Answer</h4>
                 <form method="POST" class="from-group mt-4">
                     <div class="mb-3">
