@@ -1,27 +1,6 @@
 <?php
-//database connection
+//database Connection
 include './partials/_databaseConnection.php';
-
-//add browse question in threads table
-$showAlert = false;
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
-    $threadId = $_GET['thread-id'];
-    $commentContent = $_POST['comment-description'];
-    $currentDateTime = date('Y-m-d H:i:s');
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-    if (isset($_SESSION['loggedin'])) {
-        $userId = $_SESSION['user-id'];
-        $insertComment = "INSERT INTO comments(comment_content, thread_id, user_id, created) VALUES(?, ?, ?, ?)";
-        $statement = $conn->prepare($insertComment);
-        $statement->execute([$commentContent, $threadId, $userId, $currentDateTime]);
-        $showAlert = false;
-    }
-    // else {
-    //     $showAlert = 'You are not login. Please! login and then add your comment';
-    // }
-}
 ?>
 
 <!doctype html>
@@ -71,9 +50,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
 
         <div class="row mx-0 my-5">
             <!-- Show Thread Answer -->
-            <div class="col-12 py-2 col-lg-7 d-flex flex-column gap-4 border rounded" style="max-height: 94vh; height:100%; overflow-y: auto; scrollbar-width:thin">
-                <?php
+            <?php
+            if ($_GET['thread-id']) {
                 $threadId = $_GET['thread-id'];
+                echo '<div class="col-12 py-2 col-lg-7 d-flex flex-column gap-4 border rounded" id="answer-box" thread-id=' . $threadId . ' style="max-height: 94vh; height:100%; overflow-y: auto; scrollbar-width:thin">';
+
                 $sql = 'SELECT comment.*, user.username FROM comments comment LEFT JOIN users user ON comment.user_id = user.user_id WHERE thread_id = ?';
                 $statement = $conn->prepare($sql);
                 $statement->execute([$threadId]);
@@ -113,18 +94,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
                         <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
                     </div>';
                 }
-                ?>
-            </div>
+                echo '</div>';
+            }
+            ?>
 
             <!-- Add Browse Answer Form -->
-            <div class="col-12 px-0 ps-lg-5 ps-0 mt-5 mt-lg-0 col-lg-5" style="position: sticky; top:200px; right:0px">
+            <div class="col-12 px-0 ps-lg-5 ps-0 mt-5 mt-lg-0 col-lg-5" style="position: sticky; top:200px; right:0px" id="add-browse-answer">
                 <h4>Add Your Comment/ Answer</h4>
+                <p id="txtHint"></p>
                 <form method="POST" class="from-group mt-4">
                     <div class="mb-3">
-                        <textarea id="comment-description" name="comment-description" class="form-control" placeholder="Leave a comment/ answer here" required style="height: 150px"></textarea>
+                        <textarea id="comment-description" class="form-control" placeholder="Leave a comment/ answer here" required style="height: 150px"></textarea>
                     </div>
                     <div class="float-end">
-                        <button type="submit" id="add-comment" name="add-comment" class="btn btn-success">Add Comment</button>
+                        <button type="button" id="add-comment" class="btn btn-success">Add Comment</button>
                     </div>
                 </form>
             </div>
@@ -132,7 +115,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-comment'])) {
     </div>
 
     <?php include './partials/_footer.php'; ?>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="./script/main.js"></script>
 </body>
 
 </html>

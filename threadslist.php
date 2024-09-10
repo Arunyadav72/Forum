@@ -1,24 +1,6 @@
 <?php
 //database connection
 include './partials/_databaseConnection.php';
-
-//add browse question in threads table
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-question'])) {
-    $categoryId = $_GET['category-id'];
-    $questionTitle = $_POST['question-title'];
-    $questionDescription = $_POST['question-description'];
-    $currentDateTime = date('Y:m:d H:i:s');
-
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-    if (isset($_SESSION['loggedin'])) {
-        $userId = $_SESSION['user-id'];
-        $insertQuestion = "INSERT INTO threads(thread_title, thread_description, thread_category_id, user_id, created) VALUES(?, ?, ?, ?, ?)";
-        $statement = $conn->prepare($insertQuestion);
-        $statement->execute([$questionTitle, $questionDescription, $categoryId, $userId, $currentDateTime]);
-    }
-}
 ?>
 
 <!doctype html>
@@ -70,13 +52,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-question'])) {
         </div>
         <div class="row mx-0 my-5">
             <!-- Show Browse Question -->
-            <div class="col-12 col-lg-7 py-2 d-flex flex-column gap-4 border rounded" style="max-height: 94vh; height:100%; overflow-y: auto; scrollbar-width:thin">
-                <?php
+            <?php
+            if ($_GET['category-id']) {
                 $categoryId = $_GET['category-id'];
+                echo '<div class="col-12 col-lg-7 py-2 d-flex flex-column gap-4 border rounded" id="question-box" category-id=' . $categoryId . ' style="max-height: 94vh; height:100%; overflow-y: auto; scrollbar-width:thin">';
+
                 $sql = 'SELECT thread.*, user.username FROM threads thread LEFT JOIN users user ON thread.user_id = user.user_id WHERE thread_category_id = ?';
                 $statement = $conn->prepare($sql);
                 $statement->execute([$categoryId]);
-
                 if ($statement->rowCount()) {
                     while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
                         $threadId = $row['thread_id'];
@@ -84,52 +67,53 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-question'])) {
                         $threadDescription = $row['thread_description'];
                         $threadUsername = $row['username'];
                         $threadAddedDateTime = $row['created'];
-
                         echo '<section class="d-flex flex-column gap-1 py-2">
-                            <!-- added user -->
-                            <div class="d-flex gap-2">
-                                <div style="width: 45px; height:45px;" class="border  rounded-circle text-center">
-                                    <i class="bi bi-person fs-2"></i>
-                                </div>
-                                <div>
-                                    <p class="m-0 fw-semibold">' . $threadUsername . '</p>
-                                    <p class="m-0">';
+                                <!-- added user -->
+                                <div class="d-flex gap-2">
+                                    <div style="width: 45px; height:45px;" class="border  rounded-circle text-center">
+                                        <i class="bi bi-person fs-2"></i>
+                                    </div>
+                                    <div>
+                                        <p class="m-0 fw-semibold">' . $threadUsername . '</p>
+                                        <p class="m-0">';
                         echo ($threadAddedDateTime) ? date("g:i A", strtotime($threadAddedDateTime)) . ' || ' : '';
                         echo date("j F, Y", strtotime($threadAddedDateTime));
                         echo '</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="d-flex gap-3" style="margin-left:20px;">
-                                <div style="width:9px;" class="bg-secondary-subtle rounded"></div>
-                                <div class="h-100">
-                                    <a href="thread.php?thread-id=' . $threadId . '" class="fw-semibold fs-5">' . $threadTitle . '</a>
-                                    <p>' . $threadDescription . '</p>
+                                <div class="d-flex gap-3" style="margin-left:20px;">
+                                    <div style="width:9px;" class="bg-secondary-subtle rounded"></div>
+                                    <div class="h-100">
+                                        <a href="thread.php?thread-id=' . $threadId . '" class="fw-semibold fs-5">' . $threadTitle . '</a>
+                                        <p>' . $threadDescription . '</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </section>';
+                            </section>';
                     }
                 } else {
                     echo '<div class="jumbotron bg-secondary-subtle p-5 rounded-3">
-                        <h1 class="display-6">Browse Question Not Founds</h1>
-                        <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
-                    </div>';
+                            <h1 class="display-6">Browse Question Not Founds</h1>
+                            <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
+                        </div>';
                 }
-                ?>
-            </div>
+                echo '</div>';
+            }
+            ?>
 
             <!-- Add Browse Question Form -->
-            <div class="col-12 col-lg-5 px-0 ps-lg-5 ps-0 mt-5 mt-lg-0" style="position: sticky; top:200px; right:0px">
+            <div class="col-12 col-lg-5 px-0 ps-lg-5 ps-0 mt-5 mt-lg-0" style="position: sticky; top:200px; right:0px" id="add-browse-question">
                 <h4>Add Your Question</h4>
-                <form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="POST" class="from-group mt-4">
+                <p id="txtHint"></p>
+                <form method="POST" class="from-group mt-4">
                     <div class="form-floating mb-3">
-                        <input type="text" id="question-title" name="question-title" class="form-control" placeholder="Question-title" required>
+                        <input type="text" id="question-title" class="form-control" placeholder="Question-title" required>
                         <label for="question-title">Question Title</label>
                     </div>
                     <div class="mb-3">
-                        <textarea id="question-description" name="question-description" class="form-control" placeholder="Leave a description here" required style="height: 150px"></textarea>
+                        <textarea id="question-description" class="form-control" placeholder="Leave a description here" style="height: 150px" required></textarea>
                     </div>
                     <div class="float-end">
-                        <button type="submit" id="add-question" name="add-question" class="btn btn-success">Add Question</button>
+                        <button type="button" id="add-question" class="btn btn-success">Add Question</button>
                     </div>
                 </form>
             </div>
@@ -137,7 +121,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add-question'])) {
     </div>
 
     <?php include './partials/_footer.php'; ?>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="./script/main.js"></script>
 </body>
 
 </html>

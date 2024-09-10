@@ -5,7 +5,9 @@ $password = "";
 $databaseName = "forum";
 
 $dsn = "mysql:host=localhost; dbname=forum";
-$conn = new PDO($dsn, $username, $password);
-if (!$conn) {
-    die("Sorry we failed to connect");
+
+try {
+    $conn = new PDO($dsn, $username, $password);
+} catch (PDOException $e) {
+    echo 'Something went wrong';
 }
