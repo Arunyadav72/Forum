@@ -52,53 +52,8 @@ include './partials/_databaseConnection.php';
         </div>
         <div class="row mx-0 my-5">
             <!-- Show Browse Question -->
-            <?php
-            if ($_GET['category-id']) {
-                $categoryId = $_GET['category-id'];
-                echo '<div class="col-12 col-lg-7 py-2 d-flex flex-column gap-4 border rounded" id="question-box" category-id=' . $categoryId . ' style="max-height: 94vh; height:100%; overflow-y: auto; scrollbar-width:thin">';
+            <div class="col-12 col-lg-7 py-2 d-flex flex-column gap-4 border rounded" id="question-box" category-id=<?php echo $_GET['category-id']; ?> style="max-height: 94vh; height:100%; overflow-y: auto; scrollbar-width:thin"></div>
 
-                $sql = 'SELECT thread.*, user.username FROM threads thread LEFT JOIN users user ON thread.user_id = user.user_id WHERE thread_category_id = ?';
-                $statement = $conn->prepare($sql);
-                $statement->execute([$categoryId]);
-                if ($statement->rowCount()) {
-                    while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-                        $threadId = $row['thread_id'];
-                        $threadTitle = $row['thread_title'];
-                        $threadDescription = $row['thread_description'];
-                        $threadUsername = $row['username'];
-                        $threadAddedDateTime = $row['created'];
-                        echo '<section class="d-flex flex-column gap-1 py-2">
-                                <!-- added user -->
-                                <div class="d-flex gap-2">
-                                    <div style="width: 45px; height:45px;" class="border  rounded-circle text-center">
-                                        <i class="bi bi-person fs-2"></i>
-                                    </div>
-                                    <div>
-                                        <p class="m-0 fw-semibold">' . $threadUsername . '</p>
-                                        <p class="m-0">';
-                        echo ($threadAddedDateTime) ? date("g:i A", strtotime($threadAddedDateTime)) . ' || ' : '';
-                        echo date("j F, Y", strtotime($threadAddedDateTime));
-                        echo '</p>
-                                    </div>
-                                </div>
-                                <div class="d-flex gap-3" style="margin-left:20px;">
-                                    <div style="width:9px;" class="bg-secondary-subtle rounded"></div>
-                                    <div class="h-100">
-                                        <a href="thread.php?thread-id=' . $threadId . '" class="fw-semibold fs-5">' . $threadTitle . '</a>
-                                        <p>' . $threadDescription . '</p>
-                                    </div>
-                                </div>
-                            </section>';
-                    }
-                } else {
-                    echo '<div class="jumbotron bg-secondary-subtle p-5 rounded-3">
-                            <h1 class="display-6">Browse Question Not Founds</h1>
-                            <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
-                        </div>';
-                }
-                echo '</div>';
-            }
-            ?>
 
             <!-- Add Browse Question Form -->
             <div class="col-12 col-lg-5 px-0 ps-lg-5 ps-0 mt-5 mt-lg-0" style="position: sticky; top:200px; right:0px" id="add-browse-question">
